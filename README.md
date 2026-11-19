@@ -4,7 +4,7 @@ A Python implementation of array-address peephole optimization for compiler desi
 
 *Sub-title: a simplified reproduction of the subscript-address optimization of Guan et al. (2025), with instruction-count evaluation.*
 
-> **Status:** Phase 0 (project setup) complete. No compiler functionality is implemented yet.
+> **Status:** the full pipeline (lexer, parser, semantic checks, L0/L1 code, L2/hoist/L3 optimization, interpreter, verification) and the command line are implemented.
 
 ## Research paper
 
@@ -33,7 +33,9 @@ This project does **not** reproduce the paper's QEMU compile-time experiments; i
 - `unittest` for testing
 - Git / GitHub for version control
 
-## Basic setup
+## Setup
+
+Requires Python 3.10 or newer (developed with 3.13) and nothing else: the project uses the standard library only, so there is nothing to install.
 
 ```
 git clone https://github.com/khushiiii4/ArrayPeep.git
@@ -41,15 +43,66 @@ cd ArrayPeep
 python --version
 ```
 
-`python --version` must show 3.10 or newer. Nothing needs to be installed; a virtual environment is optional.
+## Usage
+
+Run from the repository root:
+
+```
+python -m arraypeep FILE [--level LEVEL] [--show-vectors] [--show-quads] [--show-plan] [--run] [--compare]
+```
+
+`FILE` is a MiniLoop source file (see `examples/`).
+
+| Option | Meaning |
+|---|---|
+| `--level LEVEL` | Level to generate and run: `L0`, `L1`, `L2`, `hoist` (hoisting only), `L3`, or `all` (those five in order). Default `L3`. |
+| `--show-vectors` | Print the array information vectors. |
+| `--show-quads` | Print the quadruple listing of every selected level. |
+| `--show-plan` | Print the optimization report (levels `L2`, `hoist`, `L3`; `all` shows the `L3` one). |
+| `--run` | Print the execution result (counters, final scalars, memory checksum) of every selected level. This is the default when no `--show-*` flag is given. |
+| `--compare` | Verify that every level matches `L0` (requires `--level all`). |
+
+Examples:
+
+```
+python -m arraypeep examples/matrix_multiply.ml
+python -m arraypeep examples/2d_traversal.ml --level all --compare
+python -m arraypeep examples/1d_sum.ml --level L2 --show-quads --show-plan
+```
+
+### Verification
+
+With `--compare`, every level is compared with `L0` on three checks: the final scalars, the final memory image and the complete ordered address trace. Instruction counters are not compared. A verification block is printed with one PASS/FAIL line per level and an overall verdict.
+
+### Exit codes
+
+Every error prints exactly one line to standard error and never a traceback.
+
+| Code | Meaning |
+|---|---|
+| 0 | Success (and, with `--compare`, every level matched `L0`). |
+| 1 | Unreadable file, syntax, semantic or declaration error, or invalid command line. |
+| 2 | Run-time error while executing the program (access outside every declared array, step limit exceeded). |
+| 3 | Verification failed: a level disagrees with `L0`. |
+| 4 | Internal error (a compiler bug: ill-formed generated code or an unexpected exception). |
+
+### Examples runner
+
+```
+python tools/run_examples.py
+```
+
+Runs every `examples/*.ml` at `L0`, `L1`, `L2`, `hoist` and `L3`, prints one `PASS`/`FAIL` line per example and level plus a total, and exits 0 only if every run passed (1 otherwise, also when no example is found).
 
 ## Testing
 
-Run from the project root:
+Run from the project root. The strict run turns warnings into errors:
 
 ```
-python -m unittest discover -s tests -v
+python -W error -m unittest discover -s tests
 ```
+
+Add `-v` for a verbose listing.
 
 ## Project layout
 

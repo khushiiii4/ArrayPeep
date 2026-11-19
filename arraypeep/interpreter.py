@@ -100,6 +100,7 @@ class RunResult:
 
     @property
     def checksum(self) -> str:
+        """Checksum of the final memory image."""
         return memory_checksum(self.memory)
 
     def format(self) -> str:

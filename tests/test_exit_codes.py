@@ -233,7 +233,7 @@ class ExitCodeThreeTests(ExitCase):
                 with self.tampered_run_file("L2", **changes):
                     code, out, err = self.cli(self.source(GOOD), "--level", "all", "--compare")
                 self.assertEqual((code, err), (3, ""))
-                self.assertTrue(out.rstrip().endswith("verdict     : FAIL"))
+                self.assertTrue(out.split("== Metrics")[0].rstrip().endswith("verdict     : FAIL"))
 
     def test_runtime_error_in_a_non_baseline_level_is_a_verification_failure(self):
         for error in (RuntimeAccessError("runtime error: x", 4, "L3"), StepLimitError("runtime error: step limit")):

@@ -84,6 +84,7 @@ class Window:
 
     @property
     def positions(self) -> range:
+        """Quadruple positions covered by the window, ``first`` to ``last``."""
         return range(self.first, self.last + 1)
 
 
@@ -104,6 +105,7 @@ class AccessReport:
 
     @property
     def optimizable(self) -> bool:
+        """True when the access is eligible for optimization."""
         return self.status == STATUS_OPTIMIZABLE
 
 

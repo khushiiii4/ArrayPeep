@@ -60,6 +60,7 @@ class _Analyzer:
         return SemanticError(message, line)
 
     def run(self) -> SymbolTable:
+        """Check the whole program and return its symbol table."""
         for item in self.program.items:
             self._item(item)
         return self.table
