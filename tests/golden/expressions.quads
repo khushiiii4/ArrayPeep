@@ -1,0 +1,6 @@
+  1  BODY  :=      5        -        x
+  2  BODY  +       x        3        T1
+  3  BODY  -       0        x        T2
+  4  BODY  *       T1       T2       T3
+  5  BODY  -       T3       2        T4
+  6  BODY  :=      T4       -        y

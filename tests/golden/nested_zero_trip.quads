@@ -1,0 +1,8 @@
+  1  BODY  FOR     i        1        2
+  2  BODY  FOR     j        5        1
+  3  BODY  +       t        i        T1
+  4  BODY  -       T1       j        T2
+  5  BODY  :=      T2       -        t
+  6  BODY  ENDFOR  j
+  7  BODY  :=      i        -        u
+  8  BODY  ENDFOR  i

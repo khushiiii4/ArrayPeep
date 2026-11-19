@@ -1,0 +1,5 @@
+  1  BODY  FOR     i        1        3
+  2  BODY  *       i        2        T1
+  3  BODY  +       s        T1       T2
+  4  BODY  :=      T2       -        s
+  5  BODY  ENDFOR  i
