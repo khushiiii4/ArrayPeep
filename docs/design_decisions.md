@@ -74,6 +74,21 @@ Decisions taken after an independent review of the Phase 1 documents. They refin
 | 48 | Source files are UTF-8 (BOM ignored), LF or CRLF line endings accepted, non-ASCII only inside comments, identifiers use ASCII letters, a tab is one column | [OUR EXTENSION] | The project is edited on Windows. `language_spec.md` 2 |
 | 49 | The memory image is the contents of the declared array regions only; `init` is injective on any 1009 consecutive addresses and repeats beyond that, so the address trace stays the primary equivalence check | [OUR EXTENSION] | `quad_spec.md` 4.1, 4.4, 4.6 |
 
+### 2026-11-19 - Phase 2 decisions (symbol table and address math)
+
+Numbering continues from the Phase 1 review table. Roadmap Phase 2 gives the formulas; these decisions fix the choices it leaves open.
+
+| # | Decision | Tag | Reason / where |
+|---|---|---|---|
+| 50 | Errors derive from one base class `ArrayPeepError`, defined for now in `symbol_table.py` (it may move to its own module in Phase 10). `address_math.py` stays dependency-free and raises the built-in `ValueError` (invalid bounds or sizes) and `TypeError` (non-integer input); `symbol_table.py` translates them into `ArrayPeepError` subclasses with the messages of `language_spec.md` Section 5 | [OUR EXTENSION] | Phase 10.5 wants one base class, but the Section 4 layout has no errors module. Keeps `address_math` testable alone (roadmap Phase 2 completion criterion) |
+| 51 | The symbol table enforces S4 (duplicate array), S5 (`u >= l`), S6 (1 to 4 dimensions) and S7 (no overlap; adjacent regions are allowed), and registers scalars and loop variables with name-class conflicts. S8, S9, S11, S12 stay in `semantic.py` (Phase 3). Errors carry an optional line number so Phase 3 can attach it | [OUR EXTENSION] | Roadmap Phase 2.5 asks for arrays, scalars, loop variables, duplicates and overlaps; the scoping rules need the AST |
+| 52 | A bound or base address that is not an `int` (including `bool`) is rejected with a message saying that variable-bound arrays are not supported | [PAPER] scope (static arrays only) | Roadmap Phase 2.6. The parser already rejects non-literal bounds as a syntax error; the table can only check types |
+| 53 | `address_math.py` also provides `varpart` (nested form of Eq. 2) and `direct_address` (Eq. 1). Neither range-checks the subscripts, because the address identity holds for any integers and the run-time check is on the address (`quad_spec.md` 4.3). The tests keep their own independent product-form Eq. 1 | [OUR EXTENSION] | The identity test needs both sides; the test must not share code with the code under test |
+| 54 | `address_math.py` works for any `n >= 1`; the limit of 4 dimensions is rule S6 of the symbol table, not of the math. It imports only the standard library | [SIMPLIFIED] | Pure formulas; roadmap 2.1 to 2.4 |
+| 55 | Tests for `address_math` live in `tests/test_symbol_table.py`; no separate test file | [SIMPLIFIED] | Roadmap Phase 2 names only that test file |
+| 56 | Git tags `phase-1` and `phase-2` are created only when the user approves, at the end of the phase. None exists yet | - | Roadmap Appendix B and the Phase 0 / Phase 10 checklists use phase tags |
+| 57 | Information-vector printer, empty table: when no arrays are registered, `format_information_vectors()` returns the standard 74-character `== Array information vector ===...` header followed by a line ` (no arrays declared)`. The function returns a string without a trailing newline (printing is left to the caller) | [OUR EXTENSION] | `quad_spec.md` 9.1 defines the layout of one array's block only and says nothing about a program with no arrays. Implemented in `symbol_table.py` (`format_information_vectors`) |
+
 ### Ambiguities in the roadmap or paper, and how Phase 1 treats them
 
 | Ambiguity | Treatment |
