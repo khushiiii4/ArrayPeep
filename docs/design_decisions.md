@@ -129,6 +129,14 @@ Numbering continues from decision 57. These choices implement the Phase 1 specif
 | 79 | The final scalars of a run are the source scalars mentioned in the listing (never-assigned ones are 0); temporaries `T`/`P` and loop variables are excluded. The memory image is the declared array regions only. The memory checksum is the first 16 hex digits of a SHA-256 over the address-sorted `address:value;` pairs, so it is independent of insertion order. The initial pattern of decision 49 / `quad_spec.md` 4.4 is unchanged | [OUR EXTENSION] | `quad_spec.md` 4.6; the equivalence check of Phases 8, 9 and 11 compares exactly these |
 | 80 | `Counters` stores only the executed count per opcode and per `(opcode, tag)`; multiplications, additions, subtractions, loads, stores and the ADDR figures are derived from them, so they cannot disagree with the per-opcode total. Unary minus counts as a subtraction | [OUR EXTENSION] | `quad_spec.md` 8; `metrics.py` |
 
+### 2026-11-19 - Phase 7 decisions (linear analysis and windows)
+
+| # | Decision | Tag | Reason / where |
+|---|---|---|---|
+| 81 | A `LinearForm` stores only non-zero coefficients, ordered like the enclosing loops (outermost first), and only the loop variables of the loops that enclose the access count as variables; a name outside them (including a loop variable of a closed loop) is a plain scalar and makes the subscript non-linear. A product is linear when one side has no loop variable left after simplification (`i*0`, `2*(3-1)*i`). Phase 8 must read a loop variable missing from `coeffs` as `D_s = 0` | [PAPER] Eq. 4 / [OUR EXTENSION] | `linear_analysis.py`; Phase 8.3 "a coefficient of 0 means the address does not depend on that loop" |
+| 82 | Eligibility is per access: one non-linear subscript makes the whole access a fallback kept at L1; the reason is the first non-linear subscript, `subscript <k>: NOT LINEAR: <roadmap text> (<detail>)`. The roadmap reason texts are exact in `NonLinear.reason`; the offending part is separate in `detail`. The linear subscripts of a fallback are still analysed and reported | [SIMPLIFIED] | roadmap 7.3, 7.4; `optimizer.py` |
+| 83 | Window validation is strict and global: `analyze_accesses` first checks every descriptor against the listing (access quadruple is `=[ ]`/`[ ]=` and `BODY`, `last + 1 == access`, windows nested or disjoint, every window quadruple is `ADDR` or a nested read, every `ADDR` quadruple lies in a window, every indexed quadruple has a descriptor) and raises `WindowError` (`internal error: ...`) on any inconsistency. Reports are in source order, an outer access before the reads nested in its subscripts; the analysis accepts L0 and L1 listings and never modifies its input, so Phases 8 and 9 rebuild listings from it | [OUR EXTENSION] | `quad_spec.md` 6; roadmap 7.5, 7.7 and Appendix C (never patch in place) |
+
 ### Ambiguities in the roadmap or paper, and how Phase 1 treats them
 
 | Ambiguity | Treatment |
