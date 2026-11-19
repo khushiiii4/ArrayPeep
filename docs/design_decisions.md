@@ -145,6 +145,19 @@ Numbering continues from decision 57. These choices implement the Phase 1 specif
 | 85 | An optimizable access that lies inside the window of a fallback access (for example `A[i,j]` in `V[A[i,j] + ...]`) stays at L1, so that the fallback window is byte-for-byte its L1 window; the report says `kept at L1 (inside the window of a fallback access)`. Rewriting it would change the fallback's quadruples | [OUR EXTENSION] | `optimizer.py` (`optimize_l2`); roadmap 7.4 "keep its existing L1 code unchanged" |
 | 86 | `optimize_l2` keeps every existing temporary name and gives new temporaries fresh numbers above the highest one already in the listing; it does not renumber the listing. Numbers can therefore be out of order or have gaps (`T8, T9` before `T6`), but each `T` is still assigned once and before use. Global renumbering would rename temporaries inside fallback windows | [OUR EXTENSION] | `optimizer.py`; decision 85, `quad_spec.md` 2 |
 
+### 2026-11-19 - Phase 9 decisions (variable part and incremental address)
+
+| # | Decision | Tag | Reason / where |
+|---|---|---|---|
+| 87 | lambda is the innermost active loop level (innermost loop with `D_s != 0`). If no active level exists, lambda is `None` and all enclosing loops are invariant | [OUR EXTENSION] | `loop_opt.py` (`LoopLevels`); roadmap 9.1 |
+| 88 | Partial sums use `P_r = K + SUM(s <= r) D_s*e_s`; an outer partial sum is placed before the next loop, `K` is folded into the sums (the access base is 0) and each access gets fresh temporaries | [OUR EXTENSION] | `loop_opt.py` (`hoist_l2`); roadmap 9.2, 9.6 |
+| 89 | The first active level is initialised with `:= K + D*lo`; later levels use `+ P_outer, D*lo, P`, including when the constant is zero. Increments are immediately before the matching `ENDFOR`; the access uses the innermost active temporary | [OUR EXTENSION] | `loop_opt.py` (`increment_l2`); roadmap 9.3, 9.5; T04 prediction (page 36) |
+| 90 | Transformed listings may contain `ADDR` quadruples outside Phase 7 access windows, so `validate_windows` does not apply to them. Separate validation checks quadruple well-formedness and accounts for every generated `ADDR` quadruple (`HoistError`) | [OUR EXTENSION] | `loop_opt.py`; decision 83 |
+| 91 | Profitability uses an unweighted count of `+`, `-` and `*` quadruples in the innermost loop body. L3 is selected only when its count is strictly lower than L2 | [OUR EXTENSION] | `loop_opt.py` (`guarded_l3`); roadmap 9.4 |
+| 92 | Profitability decisions are independent per access. Rejected accesses retain their L2 code through rebuilding with their plans disabled | [OUR EXTENSION] | `loop_opt.py` (`guarded_l3`); roadmap 9.4, 9.6 |
+| 93 | The selectable stages are exactly `L2`, `hoist` and `L3` (`optimize_stage`; anything else raises `StageError`). The current result-level identifiers are `L3-hoist`, `L3-incr` and `L3` | [OUR EXTENSION] | `loop_opt.py`; roadmap 9.8 |
+| 94 | Phase 9 loop optimization resides in `arraypeep/loop_opt.py`, keeping the Phase 7-8 modules untouched | [OUR EXTENSION] | roadmap Section 4.1 |
+
 ### Ambiguities in the roadmap or paper, and how Phase 1 treats them
 
 | Ambiguity | Treatment |
