@@ -17,12 +17,75 @@ Provenance tags: **[PAPER]** stated in the paper. **[SIMPLIFIED]** a simplificat
 | 5 | Static arrays only: constant integer bounds, 1 to 4 dimensions | [PAPER] scope | The paper excludes variable-bound arrays; so do we. |
 | 6 | Row-major storage, one storage unit per element | [PAPER] | Eq. 1. |
 | 7 | Counted loops `for v = lo to hi`, constant bounds, step +1 | [SIMPLIFIED] | Smaller input language. |
-| 8 | `di = ui - li + 1` | Our resolution | The paper prints both `-1` (Section 2) and `+1` (Section 3.1); `+1` is the correct count. |
-| 9 | Ordinary notation `A[i1,...,in]` with `stride_k = d(k+1)...dn` | Our notation | Same quantity as the paper's reversed-index `Δ`. |
+| 8 | `di = ui - li + 1` | [PAPER] (the paper itself is inconsistent; we resolve it) | The paper prints both `-1` (Section 2) and `+1` (Section 3.1); `+1` is the correct count. |
+| 9 | Ordinary notation `A[i1,...,in]` with `stride_k = d(k+1)...dn` | [SIMPLIFIED] (notation only; same quantity as the paper's `Δ`) | Same quantity as the paper's reversed-index `Δ`. |
 | 10 | Every quadruple tagged `ADDR` (address computation) or `BODY` (everything else) | [SIMPLIFIED] | Counters can show the effect on address arithmetic alone. |
 | 11 | Measure instruction counts in our interpreter, not compile time | [SIMPLIFIED] | The paper measured compile time inside QEMU 1.7.2; we do not reproduce those experiments. |
 | 12 | Only linear subscripts are optimized; others fall back to L1 and still run correctly | [PAPER] scope | The paper treats only linear subscripts. |
 | 13 | Coding conventions: PEP 8 naming, docstrings on every module and public function, type hints on signatures | - | Roadmap Phase 0.7. |
+
+### 2026-11-19 - Phase 1 decisions (language, quadruples, memory, outputs)
+
+Specifications: `language_spec.md`, `quad_spec.md`, `hand_examples.md`. Numbering continues from the Phase 0 table.
+
+| # | Decision | Tag | Reason / where |
+|---|---|---|---|
+| 14 | Array declaration `array A[l1:u1, ..., ln:un] at BASE;`; bounds and `BASE` are integer constants (optionally negative); `u >= l`; 1 to 4 dimensions | [PAPER] scope (static arrays); syntax [SIMPLIFIED] | Roadmap Phase 1 table, Section 2.3. Explicit `BASE` keeps tests deterministic. `language_spec.md` 4.1 |
+| 15 | Counted loop `for v = lo to hi do ... end`; constant bounds; step +1; `lo > hi` is a legal zero-trip loop | [SIMPLIFIED] | Constant bounds and step 1 make linear subscripts analysable. `language_spec.md` 4.5 |
+| 16 | Expressions: integer literals, scalars, array elements, `+`, `-`, `*`, parentheses, unary minus; precedence parentheses > unary `-` > `*` > `+ -`; left-associative; any expression may be a subscript, only linear ones are optimised | [SIMPLIFIED] / [PAPER] (subscript lists) | Roadmap Phase 1 table. `language_spec.md` 3, 4.4 |
+| 17 | Subscript lists parsed with an iterative list (`expr { "," expr }`) instead of the paper's left-recursive `elist -> elist , E` | [PAPER]-derived | Same language, no left recursion (Phase 3.4). The paper's own grammar text is not reproduced; we use the roadmap's description of `G[A]`, `G[V]` |
+| 18 | Declarations only at the top level; array must be declared before first use; no `+=`, no print statement, no `if`/`while`/functions | [SIMPLIFIED] | `language_spec.md` 3, 5 |
+| 19 | Scalars need no declaration and start at 0 | [OUR EXTENSION] | Roadmap silent. `language_spec.md` 4.2 |
+| 20 | A loop variable is local to its loop and its name is reserved for loop variables (cannot also be a scalar or array name); sequential loops may reuse a name; nested loops may not | [OUR EXTENSION] | Roadmap only forbids assigning a loop variable inside its loop and reusing a name in nested loops. Stricter rule keeps loop variables unambiguous for the optimiser (rules S8-S11) |
+| 21 | Identifiers matching `[TP][0-9]+` are reserved for generated temporaries (`T` and `P` alone are ordinary names) | [OUR EXTENSION] | Prevents clashes with listings. Rule S12 |
+| 22 | Evaluation order: operands left to right; for `A[..] = E;` the right-hand side is evaluated first, then the target's subscripts, then the store | [OUR EXTENSION] | Roadmap silent; needed so the address trace is well defined. `language_spec.md` 4.4 |
+| 23 | Exactly eight opcodes: `+`, `-`, `*`, `:=`, `=[ ]`, `[ ]=`, `FOR`, `ENDFOR` | [PAPER] form for `=[ ]`, `[ ]=`; rest [SIMPLIFIED] | `quad_spec.md` 3 |
+| 24 | Unary minus is emitted as `(-, 0, x, T)` and counted as a subtraction; no constant folding | [OUR EXTENSION] | The roadmap lists no unary opcode. `quad_spec.md` 3 |
+| 25 | Field roles of loop markers: `FOR`: arg1 = variable, arg2 = lo, result = hi; `ENDFOR`: arg1 = variable | [OUR EXTENSION] (reading of roadmap's `FOR v lo hi`) | The roadmap prints the listing but does not name the fields. `quad_spec.md` 3 |
+| 26 | Exact loop semantics: `FOR` enters (or skips to after `ENDFOR` when `lo > hi`); `ENDFOR` increments and jumps back unless `v = hi`; `FOR` counted once per entry, `ENDFOR` once per iteration; dynamic count `1 + N(k+1)` | [SIMPLIFIED] (counting rule from roadmap Section 3.1) | `quad_spec.md` 3.1, 8 |
+| 27 | Temporaries `T<n>` are statically single-assigned; L3 uses separate address temporaries `P<n>` that are updated in place | [OUR EXTENSION] | Roadmap's L3 figure updates `p2 += Dj` while its Phase 4 test forbids assigning a temporary twice; the two kinds resolve this. `quad_spec.md` 2 |
+| 28 | Indexed operand `BASE[X]`, effective address `BASE + value(X)`; constant address written `K[0]`; L0 uses `0[T]` | [PAPER] (indexed access with constant base) / [SIMPLIFIED] | `quad_spec.md` 2 |
+| 29 | Tags: the address arithmetic is `ADDR`; the indexed access quadruple itself, `FOR`/`ENDFOR` and user arithmetic are `BODY` | [SIMPLIFIED]; the access-is-BODY reading is [OUR EXTENSION] | Keeps "dynamic ADDR" to address arithmetic only. `quad_spec.md` 6 |
+| 30 | Memory: one flat integer memory, one cell per element, scalars outside it, arrays occupy `a .. a+size-1`, regions may not overlap | [PAPER] (one storage unit per element) / [SIMPLIFIED] | `quad_spec.md` 4 |
+| 31 | Run-time check is on the effective address only: outside every declared array is an error. Per-subscript range errors that still land inside memory are not detected | [SIMPLIFIED] | Roadmap Phase 1.3 defines the check this way; the limitation is documented in `quad_spec.md` 4.3 |
+| 32 | Initial memory contents `init(x) = (31*x + 7) mod 1009` for every cell of a declared array, identical for all levels | [OUR EXTENSION] | Roadmap Phase 6.1 asks for a fixed address-dependent pattern but does not specify one. May change only through a new decision |
+| 33 | Run-time step limit, default 10,000,000 executed quadruples | [OUR EXTENSION] | Roadmap Phase 6.6 requires a limit, not its value |
+| 34 | Observable behaviour = (final scalars, final memory image, ordered address trace); levels must agree on all three and on the oracle | [SIMPLIFIED] | Roadmap Section 5.4. `quad_spec.md` 4.6, 8 |
+| 35 | Definition of L0 order: `E1`, `- l1`, then per further subscript `Ek`, `* dk`, `- lk`, `+`, finally `+ a`; always subtracts lower bounds, even 0 | [SIMPLIFIED] | Reproduces roadmap's Phase 5 figure; the roadmap's T04 prediction lists a different order with the same counts (documented) |
+| 36 | L1 per the paper's PLACE/LIMIT scheme; L2 emission rules (skip `Ds = 0`, no multiplication for `Ds = 1`, `K[0]` for a constant address); L3 hoisting + incremental update with profitability guard | L1 [PAPER]; L2 [PAPER] maths + [OUR EXTENSION] emission; L3 [OUR EXTENSION] | `quad_spec.md` 7 |
+| 37 | Output layouts: information vector, optimization report, verification, metrics as in roadmap Section 5.2 (header width 74); quadruple listing with a tag column; added `verdict` line | Layouts [SIMPLIFIED]; listing and verdict line [OUR EXTENSION] | `quad_spec.md` 9 |
+| 38 | Errors: syntax `line L, col C`; semantic `line L`; run-time error names the quadruple; exit codes 0 / 1 (input, syntax, semantic, command line) / 2 (run-time) / 3 (verification FAIL) / 4 (internal error; added by decision 40) | Policy [SIMPLIFIED]; exit codes [OUR EXTENSION] | Roadmap Phase 1.8 asks only for "non-zero". `language_spec.md` 9, `quad_spec.md` 10 |
+
+### 2026-11-19 - Phase 1 review fixes
+
+Decisions taken after an independent review of the Phase 1 documents. They refine, and do not change, decisions 14-38.
+
+| # | Decision | Tag | Reason / where |
+|---|---|---|---|
+| 39 | Command-line usage errors exit with code 1 (the driver overrides `argparse`'s default of 2) | [OUR EXTENSION] | `argparse` exits with 2, which would collide with "run-time error". `language_spec.md` 9 |
+| 40 | Internal errors (ill-formed generated code) exit with code 4 and print `internal error: ...` | [OUR EXTENSION] | Exit code was undefined. `language_spec.md` 9, `quad_spec.md` 10 |
+| 41 | Several levels in one run: a run-time error in L0 ends the run with exit 2; a run-time error in a later level while L0 completes is a verification FAIL (exit 3) | [OUR EXTENSION] | A later-level error means the optimiser is wrong, not the program. `quad_spec.md` 10 |
+| 42 | Run-time and internal messages have no file name or source line, are one line on standard error, and name the level when several levels run | [OUR EXTENSION] | They refer to a quadruple, not a source position. `language_spec.md` 9, `quad_spec.md` 10 |
+| 43 | Syntax-error position: an unexpected token is reported at its start; a missing token or an unexpected end of file just after the end of the previous token | [OUR EXTENSION] | The roadmap's example (`line 4, col 12: expected ';'`) needs this. `language_spec.md` 9 |
+| 44 | Only the first semantic error is reported; when one construct breaks several rules, the lowest-numbered rule S1-S12 wins; a name declared as an array anywhere is an array name everywhere (S3) | [OUR EXTENSION] | Removes the contradiction "one message" / "all violations" and makes golden error tests deterministic. `language_spec.md` 5, 9 |
+| 45 | Access window = contiguous run holding all `ADDR` quadruples of the access; a nested access in a subscript may lie inside it; the window of an optimisable access is exactly its `ADDR` quadruples | [SIMPLIFIED] | Roadmap 5.5 and 7.5 wording. `quad_spec.md` 6 |
+| 46 | The L0 emission rule uses temporaries named `U`, `V`, `W` in its description (they are ordinary `T` temporaries); the L1 rule is ordered like L0 (code of `Ek`, then `PLACE * dk`, then `+ Ek`) | [SIMPLIFIED] (L0) / [PAPER] scheme, ordering [OUR EXTENSION] (L1) | Avoids a clash with the reserved `P<n>`; makes L1 listings reproducible. `quad_spec.md` 7.1 |
+| 47 | The metrics block header is `== Metrics ===...`; the roadmap's "(layout only; ...)" text is not printed | [SIMPLIFIED] | `quad_spec.md` 9.5 |
+| 48 | Source files are UTF-8 (BOM ignored), LF or CRLF line endings accepted, non-ASCII only inside comments, identifiers use ASCII letters, a tab is one column | [OUR EXTENSION] | The project is edited on Windows. `language_spec.md` 2 |
+| 49 | The memory image is the contents of the declared array regions only; `init` is injective on any 1009 consecutive addresses and repeats beyond that, so the address trace stays the primary equivalence check | [OUR EXTENSION] | `quad_spec.md` 4.1, 4.4, 4.6 |
+
+### Ambiguities in the roadmap or paper, and how Phase 1 treats them
+
+| Ambiguity | Treatment |
+|---|---|
+| Paper prints `di = ui - li - 1` (Section 2) and `+ 1` (Section 3.1) | Use `+ 1` (decision 8, unchanged). |
+| Paper indexes the boundary products `Δ` in reverse (`a[in, ..., i1]`) | Ordinary notation with `stridek`; same quantity (decision 9, unchanged). |
+| Roadmap L0 order in the Phase 5 figure differs from its Section 5.5 T04 prediction (same counts) | Decision 35 fixes the Phase 5 order. |
+| Roadmap writes `Z[i,j] += ...` in T11 but the language has no `+=` | `matrix_multiply.ml` writes the update out in full and clears `Z[i,j]` first. |
+| Roadmap's T11 requires "known values in X and Y" but Phase 6.1 says memory has an address pattern | `Z` is cleared by the program; matrix contents are written by tests in a later phase. |
+| The roadmap's lower-case `p1, t1` in the L3 figure vs upper-case `T1` in the listings | `T` for temporaries, `P` for address temporaries (decision 27). |
+| Roadmap says "lo, hi integer literals" but Phase 3 mentions "negative literals" | Signed integer constants are accepted in bounds, `BASE` and loop bounds (`signed_int`). |
+| Whether the paper's "at least n multiplications" matches the nested form's `n - 1` | Not argued; counters measure our own code (unchanged from roadmap Section 1.5). |
 
 ## The four implementation levels
 
