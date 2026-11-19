@@ -1,0 +1,75 @@
+{
+ "id": "T10",
+ "program": "T10.ml",
+ "title": "C[i,j] = A[i,j] + B[i,j]",
+ "decision_basis": "derived from the profitability guard (quad_spec.md 7: L3 only if the arithmetic per innermost iteration drops); the roadmap column gives no decision",
+ "accesses": [
+  {
+   "source": "A[i, j]",
+   "kind": "read",
+   "decision": "L3",
+   "k": -6,
+   "d": {
+    "i": 5,
+    "j": 1
+   }
+  },
+  {
+   "source": "B[i, j]",
+   "kind": "read",
+   "decision": "L3",
+   "k": 94,
+   "d": {
+    "i": 5,
+    "j": 1
+   }
+  },
+  {
+   "source": "C[i, j]",
+   "kind": "write",
+   "decision": "L3",
+   "k": 194,
+   "d": {
+    "i": 5,
+    "j": 1
+   }
+  }
+ ],
+ "trace": {
+  "length": 60,
+  "first": [
+   "R",
+   0
+  ],
+  "last": [
+   "W",
+   219
+  ],
+  "prefix": [
+   [
+    "R",
+    0
+   ],
+   [
+    "R",
+    100
+   ],
+   [
+    "W",
+    200
+   ],
+   [
+    "R",
+    1
+   ],
+   [
+    "R",
+    101
+   ],
+   [
+    "W",
+    201
+   ]
+  ]
+ }
+}

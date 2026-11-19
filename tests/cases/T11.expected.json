@@ -1,0 +1,117 @@
+{
+ "id": "T11",
+ "program": "T11.ml",
+ "title": "Z = X*Y, 4x4 matrices (Z cleared, then updated in the k loop)",
+ "decision_basis": "roadmap 5.3 expected decision column: Z accesses hoisted out of the k loop",
+ "accesses": [
+  {
+   "source": "Z[i, j]",
+   "kind": "write",
+   "decision": "L3",
+   "k": 27,
+   "d": {
+    "i": 4,
+    "j": 1
+   }
+  },
+  {
+   "source": "Z[i, j]",
+   "kind": "read",
+   "decision": "L3",
+   "k": 27,
+   "d": {
+    "i": 4,
+    "j": 1,
+    "k": 0
+   },
+   "hoisted_out_of": [
+    "k"
+   ]
+  },
+  {
+   "source": "X[i, k]",
+   "kind": "read",
+   "decision": "L3",
+   "k": -5,
+   "d": {
+    "i": 4,
+    "j": 0,
+    "k": 1
+   }
+  },
+  {
+   "source": "Y[k, j]",
+   "kind": "read",
+   "decision": "L3",
+   "k": 11,
+   "d": {
+    "i": 0,
+    "j": 1,
+    "k": 4
+   }
+  },
+  {
+   "source": "Z[i, j]",
+   "kind": "write",
+   "decision": "L3",
+   "k": 27,
+   "d": {
+    "i": 4,
+    "j": 1,
+    "k": 0
+   },
+   "hoisted_out_of": [
+    "k"
+   ]
+  }
+ ],
+ "trace": {
+  "length": 272,
+  "first": [
+   "W",
+   32
+  ],
+  "last": [
+   "W",
+   47
+  ],
+  "prefix": [
+   [
+    "W",
+    32
+   ],
+   [
+    "R",
+    32
+   ],
+   [
+    "R",
+    0
+   ],
+   [
+    "R",
+    16
+   ],
+   [
+    "W",
+    32
+   ],
+   [
+    "R",
+    32
+   ],
+   [
+    "R",
+    1
+   ],
+   [
+    "R",
+    20
+   ],
+   [
+    "W",
+    32
+   ]
+  ]
+ }
+}

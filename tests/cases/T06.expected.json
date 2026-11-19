@@ -1,0 +1,38 @@
+{
+ "id": "T06",
+ "program": "T06.ml",
+ "title": "N[i,j], i = -5..5, j = -3..3 (negative bounds)",
+ "decision_basis": "derived from the profitability guard (quad_spec.md 7: L3 only if the arithmetic per innermost iteration drops); the roadmap column gives no decision",
+ "accesses": [
+  {
+   "source": "N[i, j]",
+   "kind": "read",
+   "decision": "L3",
+   "k": 238,
+   "d": {
+    "i": 7,
+    "j": 1
+   }
+  }
+ ],
+ "trace": {
+  "length": 77,
+  "first": [
+   "R",
+   200
+  ],
+  "last": [
+   "R",
+   276
+  ]
+ },
+ "scalars": {
+  "fixed": {},
+  "sum_of_reads": {
+   "into": "s",
+   "arrays": [
+    "N"
+   ]
+  }
+ }
+}

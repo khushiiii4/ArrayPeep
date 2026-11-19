@@ -1,0 +1,52 @@
+{
+ "id": "T09",
+ "program": "T09.ml",
+ "title": "S[j,i], i outer, j inner (transposed)",
+ "decision_basis": "derived from the profitability guard (quad_spec.md 7: L3 only if the arithmetic per innermost iteration drops); the roadmap column gives no decision",
+ "accesses": [
+  {
+   "source": "S[j, i]",
+   "kind": "read",
+   "decision": "L3",
+   "k": 291,
+   "d": {
+    "i": 1,
+    "j": 8
+   }
+  }
+ ],
+ "trace": {
+  "length": 64,
+  "first": [
+   "R",
+   300
+  ],
+  "last": [
+   "R",
+   363
+  ],
+  "prefix": [
+   [
+    "R",
+    300
+   ],
+   [
+    "R",
+    308
+   ],
+   [
+    "R",
+    316
+   ]
+  ]
+ },
+ "scalars": {
+  "fixed": {},
+  "sum_of_reads": {
+   "into": "s",
+   "arrays": [
+    "S"
+   ]
+  }
+ }
+}

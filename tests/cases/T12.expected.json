@@ -1,0 +1,34 @@
+{
+ "id": "T12",
+ "program": "T12.ml",
+ "title": "V[i*j], V[0:99], i, j = 0..9",
+ "decision_basis": "roadmap 5.3 expected decision column: NOT LINEAR (product of loop variables), fallback to L1",
+ "accesses": [
+  {
+   "source": "V[i * j]",
+   "kind": "read",
+   "decision": "fallback",
+   "reason": "product of loop variables"
+  }
+ ],
+ "trace": {
+  "length": 100,
+  "first": [
+   "R",
+   0
+  ],
+  "last": [
+   "R",
+   81
+  ]
+ },
+ "scalars": {
+  "fixed": {},
+  "sum_of_reads": {
+   "into": "s",
+   "arrays": [
+    "V"
+   ]
+  }
+ }
+}

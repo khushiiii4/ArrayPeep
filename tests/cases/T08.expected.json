@@ -1,0 +1,41 @@
+{
+ "id": "T08",
+ "program": "T08.ml",
+ "title": "A[i,5] inside the i and j loops (i = 1..10, j = 1..3)",
+ "decision_basis": "roadmap 5.3 expected decision column: hoisted out of the j loop",
+ "accesses": [
+  {
+   "source": "A[i, 5]",
+   "kind": "read",
+   "decision": "L3",
+   "k": 984,
+   "d": {
+    "i": 20,
+    "j": 0
+   },
+   "hoisted_out_of": [
+    "j"
+   ]
+  }
+ ],
+ "trace": {
+  "length": 30,
+  "first": [
+   "R",
+   1004
+  ],
+  "last": [
+   "R",
+   1184
+  ]
+ },
+ "scalars": {
+  "fixed": {},
+  "sum_of_reads": {
+   "into": "s",
+   "arrays": [
+    "A"
+   ]
+  }
+ }
+}

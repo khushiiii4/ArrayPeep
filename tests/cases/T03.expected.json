@@ -1,0 +1,38 @@
+{
+ "id": "T03",
+ "program": "T03.ml",
+ "title": "A[i,j], i = 1..10, j = 1..20",
+ "decision_basis": "roadmap 5.3 expected decision column: L3 applied",
+ "accesses": [
+  {
+   "source": "A[i, j]",
+   "kind": "read",
+   "decision": "L3",
+   "k": 979,
+   "d": {
+    "i": 20,
+    "j": 1
+   }
+  }
+ ],
+ "trace": {
+  "length": 200,
+  "first": [
+   "R",
+   1000
+  ],
+  "last": [
+   "R",
+   1199
+  ]
+ },
+ "scalars": {
+  "fixed": {},
+  "sum_of_reads": {
+   "into": "s",
+   "arrays": [
+    "A"
+   ]
+  }
+ }
+}

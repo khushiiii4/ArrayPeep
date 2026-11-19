@@ -1,0 +1,38 @@
+{
+ "id": "T16",
+ "program": "T16.ml",
+ "title": "U[1:1,1:5], U[i,j], i = 1..1, j = 1..5",
+ "decision_basis": "derived from the profitability guard (quad_spec.md 7: L3 only if the arithmetic per innermost iteration drops); the roadmap column gives no decision",
+ "accesses": [
+  {
+   "source": "U[i, j]",
+   "kind": "read",
+   "decision": "L3",
+   "k": 44,
+   "d": {
+    "i": 5,
+    "j": 1
+   }
+  }
+ ],
+ "trace": {
+  "length": 5,
+  "first": [
+   "R",
+   50
+  ],
+  "last": [
+   "R",
+   54
+  ]
+ },
+ "scalars": {
+  "fixed": {},
+  "sum_of_reads": {
+   "into": "s",
+   "arrays": [
+    "U"
+   ]
+  }
+ }
+}

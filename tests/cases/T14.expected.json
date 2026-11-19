@@ -1,0 +1,36 @@
+{
+ "id": "T14",
+ "program": "T14.ml",
+ "title": "A[i+k, 1] with the scalar k = 2 assigned before the loop",
+ "decision_basis": "roadmap 5.3 expected decision column: NOT LINEAR (non-loop scalar), fallback",
+ "accesses": [
+  {
+   "source": "A[i + k, 1]",
+   "kind": "read",
+   "decision": "fallback",
+   "reason": "variable that is not a loop variable"
+  }
+ ],
+ "trace": {
+  "length": 5,
+  "first": [
+   "R",
+   1040
+  ],
+  "last": [
+   "R",
+   1120
+  ]
+ },
+ "scalars": {
+  "fixed": {
+   "k": 2
+  },
+  "sum_of_reads": {
+   "into": "s",
+   "arrays": [
+    "A"
+   ]
+  }
+ }
+}

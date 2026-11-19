@@ -1,0 +1,37 @@
+{
+ "id": "T01",
+ "program": "T01.ml",
+ "title": "V0[i], i = 0..9 (1-D, zero lower bound)",
+ "decision_basis": "roadmap 5.3 expected decision column: kept at L2",
+ "accesses": [
+  {
+   "source": "V0[i]",
+   "kind": "read",
+   "decision": "kept-at-L2",
+   "k": 100,
+   "d": {
+    "i": 1
+   }
+  }
+ ],
+ "trace": {
+  "length": 10,
+  "first": [
+   "R",
+   100
+  ],
+  "last": [
+   "R",
+   109
+  ]
+ },
+ "scalars": {
+  "fixed": {},
+  "sum_of_reads": {
+   "into": "s",
+   "arrays": [
+    "V0"
+   ]
+  }
+ }
+}

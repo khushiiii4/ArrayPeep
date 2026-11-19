@@ -1,0 +1,38 @@
+{
+ "id": "T04",
+ "program": "T04.ml",
+ "title": "A[2*i+1, j-1], i = 1..4, j = 2..20",
+ "decision_basis": "roadmap 5.3 expected decision column: L1 to L2 gain; L3 applied (quad_spec.md 9.3)",
+ "accesses": [
+  {
+   "source": "A[2 * i + 1, j - 1]",
+   "kind": "read",
+   "decision": "L3",
+   "k": 998,
+   "d": {
+    "i": 40,
+    "j": 1
+   }
+  }
+ ],
+ "trace": {
+  "length": 76,
+  "first": [
+   "R",
+   1040
+  ],
+  "last": [
+   "R",
+   1178
+  ]
+ },
+ "scalars": {
+  "fixed": {},
+  "sum_of_reads": {
+   "into": "s",
+   "arrays": [
+    "A"
+   ]
+  }
+ }
+}

@@ -1,0 +1,39 @@
+{
+ "id": "T05",
+ "program": "T05.ml",
+ "title": "M[i,j,k], i = 0..3, j = 0..4, k = 0..5 (3-D)",
+ "decision_basis": "derived from the profitability guard (quad_spec.md 7: L3 only if the arithmetic per innermost iteration drops); the roadmap column gives no decision",
+ "accesses": [
+  {
+   "source": "M[i, j, k]",
+   "kind": "read",
+   "decision": "L3",
+   "k": 0,
+   "d": {
+    "i": 30,
+    "j": 6,
+    "k": 1
+   }
+  }
+ ],
+ "trace": {
+  "length": 120,
+  "first": [
+   "R",
+   0
+  ],
+  "last": [
+   "R",
+   119
+  ]
+ },
+ "scalars": {
+  "fixed": {},
+  "sum_of_reads": {
+   "into": "s",
+   "arrays": [
+    "M"
+   ]
+  }
+ }
+}

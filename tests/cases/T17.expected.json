@@ -1,0 +1,40 @@
+{
+ "id": "T17",
+ "program": "T17.ml",
+ "title": "H[0:1,0:1,0:1,0:2], four nested loops (4-D)",
+ "decision_basis": "derived from the profitability guard (quad_spec.md 7: L3 only if the arithmetic per innermost iteration drops); the roadmap column gives no decision",
+ "accesses": [
+  {
+   "source": "H[i, j, k, m]",
+   "kind": "read",
+   "decision": "L3",
+   "k": 0,
+   "d": {
+    "i": 12,
+    "j": 6,
+    "k": 3,
+    "m": 1
+   }
+  }
+ ],
+ "trace": {
+  "length": 24,
+  "first": [
+   "R",
+   0
+  ],
+  "last": [
+   "R",
+   23
+  ]
+ },
+ "scalars": {
+  "fixed": {},
+  "sum_of_reads": {
+   "into": "s",
+   "arrays": [
+    "H"
+   ]
+  }
+ }
+}

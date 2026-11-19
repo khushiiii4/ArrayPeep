@@ -1,0 +1,38 @@
+{
+ "id": "T18",
+ "program": "T18.ml",
+ "title": "A[11-i, j], i = 1..10, j = 1..20 (negative coefficient)",
+ "decision_basis": "derived from the profitability guard (quad_spec.md 7: L3 only if the arithmetic per innermost iteration drops); the roadmap column gives no decision",
+ "accesses": [
+  {
+   "source": "A[11 - i, j]",
+   "kind": "read",
+   "decision": "L3",
+   "k": 1199,
+   "d": {
+    "i": -20,
+    "j": 1
+   }
+  }
+ ],
+ "trace": {
+  "length": 200,
+  "first": [
+   "R",
+   1180
+  ],
+  "last": [
+   "R",
+   1019
+  ]
+ },
+ "scalars": {
+  "fixed": {},
+  "sum_of_reads": {
+   "into": "s",
+   "arrays": [
+    "A"
+   ]
+  }
+ }
+}

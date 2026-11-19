@@ -1,0 +1,35 @@
+{
+ "id": "T07",
+ "program": "T07.ml",
+ "title": "x = A[3,4] (no loop)",
+ "decision_basis": "roadmap 5.3 expected decision column: constant address, no run-time arithmetic",
+ "accesses": [
+  {
+   "source": "A[3, 4]",
+   "kind": "read",
+   "decision": "constant",
+   "k": 1043,
+   "d": {}
+  }
+ ],
+ "trace": {
+  "length": 1,
+  "first": [
+   "R",
+   1043
+  ],
+  "last": [
+   "R",
+   1043
+  ]
+ },
+ "scalars": {
+  "fixed": {},
+  "sum_of_reads": {
+   "into": "x",
+   "arrays": [
+    "A"
+   ]
+  }
+ }
+}

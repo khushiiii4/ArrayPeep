@@ -1,0 +1,58 @@
+{
+ "id": "T13",
+ "program": "T13.ml",
+ "title": "W[i] = 9-i, then s += V[W[i]]",
+ "decision_basis": "roadmap 5.3 expected decision column: NOT LINEAR (array element in subscript), fallback; the W[i] write is a plain 1-D access (guard rule)",
+ "accesses": [
+  {
+   "source": "W[i]",
+   "kind": "write",
+   "decision": "kept-at-L2",
+   "k": 0,
+   "d": {
+    "i": 1
+   }
+  },
+  {
+   "source": "V[W[i]]",
+   "kind": "read",
+   "decision": "fallback",
+   "reason": "array element in subscript"
+  },
+  {
+   "source": "W[i]",
+   "kind": "read",
+   "decision": "inside-fallback-window"
+  }
+ ],
+ "trace": {
+  "length": 30,
+  "first": [
+   "W",
+   0
+  ],
+  "last": [
+   "R",
+   10
+  ],
+  "prefix": [
+   [
+    "W",
+    0
+   ],
+   [
+    "W",
+    1
+   ]
+  ]
+ },
+ "scalars": {
+  "fixed": {},
+  "sum_of_reads": {
+   "into": "s",
+   "arrays": [
+    "V"
+   ]
+  }
+ }
+}

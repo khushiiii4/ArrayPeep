@@ -1,0 +1,29 @@
+{
+ "id": "T15",
+ "program": "T15.ml",
+ "title": "for i = 5 to 1 (zero-trip loop), A[i,1]",
+ "decision_basis": "roadmap 5.3 expected decision column: zero-trip, all levels identical; decision not specified (guard rule)",
+ "accesses": [
+  {
+   "source": "A[i, 1]",
+   "kind": "read",
+   "decision": "kept-at-L2",
+   "k": 980,
+   "d": {
+    "i": 20
+   }
+  }
+ ],
+ "trace": {
+  "length": 0
+ },
+ "scalars": {
+  "fixed": {},
+  "sum_of_reads": {
+   "into": "s",
+   "arrays": [
+    "A"
+   ]
+  }
+ }
+}

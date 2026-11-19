@@ -1,0 +1,37 @@
+{
+ "id": "T02",
+ "program": "T02.ml",
+ "title": "V5[i], i = 5..14 (non-zero lower bound)",
+ "decision_basis": "derived from the profitability guard (quad_spec.md 7: L3 only if the arithmetic per innermost iteration drops); the roadmap column gives no decision",
+ "accesses": [
+  {
+   "source": "V5[i]",
+   "kind": "read",
+   "decision": "kept-at-L2",
+   "k": 495,
+   "d": {
+    "i": 1
+   }
+  }
+ ],
+ "trace": {
+  "length": 10,
+  "first": [
+   "R",
+   500
+  ],
+  "last": [
+   "R",
+   509
+  ]
+ },
+ "scalars": {
+  "fixed": {},
+  "sum_of_reads": {
+   "into": "s",
+   "arrays": [
+    "V5"
+   ]
+  }
+ }
+}
