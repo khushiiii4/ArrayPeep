@@ -121,6 +121,14 @@ Numbering continues from decision 57. These choices implement the Phase 1 specif
 | 76 | `LoopEntry(var, lo, hi, depth, for_pos, endfor_pos)`: depth is 1 for an outermost loop; entries are in `FOR` order; positions are 1-based listing positions of the matching markers (so they differ between L0 and L1) | [OUR EXTENSION] | roadmap 5.6 |
 | 77 | The five Phase 4 stub tests (`ArrayStubTests`) were replaced by one test that translates the example programs at both levels; the stub message and `ARRAY_STUB_MESSAGE` no longer exist. Array tests live in `tests/test_codegen_array.py`, which uses its own product-form Eq. 1 and a test-local listing evaluator (not the Phase 6 interpreter) | [OUR EXTENSION] | decision 69 |
 
+### 2026-11-19 - Phase 6 decisions (reference executor)
+
+| # | Decision | Tag | Reason / where |
+|---|---|---|---|
+| 78 | `execute` first runs `well_formedness_errors` and the FOR/ENDFOR matching, and raises `InternalError` (`internal error: ...`) for an ill-formed listing before running anything. Later phases that rewrite listings (L2, L3) therefore get a compiler bug reported as an internal error, not as a wrong result or a user run-time error | [OUR EXTENSION] | `quad_spec.md` 3.2, 10 (exit code 4 case); `interpreter.py` |
+| 79 | The final scalars of a run are the source scalars mentioned in the listing (never-assigned ones are 0); temporaries `T`/`P` and loop variables are excluded. The memory image is the declared array regions only. The memory checksum is the first 16 hex digits of a SHA-256 over the address-sorted `address:value;` pairs, so it is independent of insertion order. The initial pattern of decision 49 / `quad_spec.md` 4.4 is unchanged | [OUR EXTENSION] | `quad_spec.md` 4.6; the equivalence check of Phases 8, 9 and 11 compares exactly these |
+| 80 | `Counters` stores only the executed count per opcode and per `(opcode, tag)`; multiplications, additions, subtractions, loads, stores and the ADDR figures are derived from them, so they cannot disagree with the per-opcode total. Unary minus counts as a subtraction | [OUR EXTENSION] | `quad_spec.md` 8; `metrics.py` |
+
 ### Ambiguities in the roadmap or paper, and how Phase 1 treats them
 
 | Ambiguity | Treatment |
