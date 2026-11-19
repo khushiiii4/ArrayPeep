@@ -137,6 +137,14 @@ Numbering continues from decision 57. These choices implement the Phase 1 specif
 | 82 | Eligibility is per access: one non-linear subscript makes the whole access a fallback kept at L1; the reason is the first non-linear subscript, `subscript <k>: NOT LINEAR: <roadmap text> (<detail>)`. The roadmap reason texts are exact in `NonLinear.reason`; the offending part is separate in `detail`. The linear subscripts of a fallback are still analysed and reported | [SIMPLIFIED] | roadmap 7.3, 7.4; `optimizer.py` |
 | 83 | Window validation is strict and global: `analyze_accesses` first checks every descriptor against the listing (access quadruple is `=[ ]`/`[ ]=` and `BODY`, `last + 1 == access`, windows nested or disjoint, every window quadruple is `ADDR` or a nested read, every `ADDR` quadruple lies in a window, every indexed quadruple has a descriptor) and raises `WindowError` (`internal error: ...`) on any inconsistency. Reports are in source order, an outer access before the reads nested in its subscripts; the analysis accepts L0 and L1 listings and never modifies its input, so Phases 8 and 9 rebuild listings from it | [OUR EXTENSION] | `quad_spec.md` 6; roadmap 7.5, 7.7 and Appendix C (never patch in place) |
 
+### 2026-11-19 - Phase 8 decisions (constant part and L2 code)
+
+| # | Decision | Tag | Reason / where |
+|---|---|---|---|
+| 84 | `K` is the complete constant of an optimizable address, not CONSPART alone: `D0 = SUM_k rho_k0 * stride_k`, `Ds = SUM_k rho_ks * stride_k` (one per enclosing loop, outermost first, zeros kept in the plan and left out of the code) and `K = CONSPART + D0`, so the address is `K + SUM Ds*es` and the access is `K[T]`. `AccessPlan` keeps `conspart`, `d0` and `k` separately for reporting | [PAPER] Eq. 2, 5 | `precompute.py`, `derivation.md`; roadmap 8.2, 8.3 (T04: 979 + 19 = 998) |
+| 85 | An optimizable access that lies inside the window of a fallback access (for example `A[i,j]` in `V[A[i,j] + ...]`) stays at L1, so that the fallback window is byte-for-byte its L1 window; the report says `kept at L1 (inside the window of a fallback access)`. Rewriting it would change the fallback's quadruples | [OUR EXTENSION] | `optimizer.py` (`optimize_l2`); roadmap 7.4 "keep its existing L1 code unchanged" |
+| 86 | `optimize_l2` keeps every existing temporary name and gives new temporaries fresh numbers above the highest one already in the listing; it does not renumber the listing. Numbers can therefore be out of order or have gaps (`T8, T9` before `T6`), but each `T` is still assigned once and before use. Global renumbering would rename temporaries inside fallback windows | [OUR EXTENSION] | `optimizer.py`; decision 85, `quad_spec.md` 2 |
+
 ### Ambiguities in the roadmap or paper, and how Phase 1 treats them
 
 | Ambiguity | Treatment |
