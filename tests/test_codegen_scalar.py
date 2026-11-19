@@ -13,7 +13,7 @@ import sys
 import unittest
 
 from arraypeep import ast_nodes as ast
-from arraypeep.codegen import ARRAY_STUB_MESSAGE, CodegenError, TempGenerator, generate_code
+from arraypeep.codegen import TempGenerator, generate_code
 from arraypeep.parser import parse
 from arraypeep.quad import (
     LISTING_WIDTH,
@@ -26,7 +26,6 @@ from arraypeep.quad import (
     well_formedness_errors,
 )
 from arraypeep.semantic import analyze
-from arraypeep.symbol_table import ArrayPeepError
 
 TESTS = pathlib.Path(__file__).resolve().parent
 ROOT = TESTS.parent
@@ -523,47 +522,18 @@ class SemanticsOfGeneratedCodeTests(unittest.TestCase):
         self.assertEqual(run_quads(compile_source("for i = 1 to 3 do s = i; end"))[0], {"s": 3})
 
 
-# -- array references: the Phase 4 stub ---------------------------------------------------------
+# -- array programs after Phase 5 (full array tests: tests/test_codegen_array.py) -----------------
 
 
-class ArrayStubTests(unittest.TestCase):
-    """Roadmap: array references fail with the stub message, not a crash."""
-
-    def assertStub(self, source: str, line: int | None = None) -> None:
-        program = parse(source)
-        with self.assertRaises(CodegenError) as ctx:
-            generate_code(program)
-        err = ctx.exception
-        self.assertIn("not yet implemented", err.message)
-        self.assertIn(ARRAY_STUB_MESSAGE, err.message)
-        self.assertIsInstance(err, ArrayPeepError)
-        if line is not None:
-            self.assertEqual(err.line, line)
-
-    def test_read(self) -> None:
-        self.assertStub("array A[1:2] at 0;\ns = A[1];", 2)
-
-    def test_write(self) -> None:
-        self.assertStub("array A[1:2] at 0;\nA[1] = 0;", 2)
-
-    def test_inside_a_loop_and_an_expression(self) -> None:
-        self.assertStub("array A[1:2] at 0;\nfor i = 1 to 2 do\n  s = s + 1 + A[i];\nend", 3)
-
-    def test_as_a_subscript(self) -> None:
-        self.assertStub("array V[0:9] at 0;\narray W[0:9] at 100;\ns = V[W[1]];", 3)
-
-    def test_every_example_program_reports_the_stub(self) -> None:
+class ArrayProgramsTests(unittest.TestCase):
+    def test_example_programs_translate_to_well_formed_listings(self) -> None:
         self.assertEqual(len(EXAMPLES), 5)
         for path in EXAMPLES:
-            with self.subTest(example=path.name):
-                self.assertStub(path.read_text(encoding="utf-8"))
-
-    def test_the_stub_is_not_a_crash(self) -> None:
-        for source in ["array A[1:2] at 0;\ns = A[1];", "array A[1:2] at 0;\nA[1] = 2;"]:
-            try:
-                generate_code(parse(source))
-            except CodegenError:
-                pass  # the intended, readable failure; any other exception type fails the test
+            for level in ("L0", "L1"):
+                with self.subTest(example=path.name, level=level):
+                    program = parse(path.read_text(encoding="utf-8"))
+                    quads = generate_code(program, analyze(program), level)
+                    self.assertEqual(well_formedness_errors(quads), [])
 
     def test_declaration_only_program_still_translates(self) -> None:
         self.assertEqual(compile_source("array A[1:2] at 0;\nfor i = 1 to 2 do s = s + i; end"),

@@ -1,9 +1,9 @@
 """Quadruple record with ADDR/BODY tag, access descriptors, loop table and listing printer.
 
-Phase 4 part: the quadruple record, the listing printer and a well-formedness
-checker for the opcodes that exist so far (docs/quad_spec.md Sections 1 to 3).
-Phase 5 adds the indexed opcodes ``=[ ]`` and ``[ ]=``, the access descriptor
-and the loop table.
+The quadruple record, the listing printer and a well-formedness checker
+(docs/quad_spec.md Sections 1 to 3), plus, from Phase 5, the indexed operand
+``BASE[X]`` with the opcodes ``=[ ]`` and ``[ ]=``, the access descriptor
+(Section 6) and the loop table.
 
 A quadruple is ``(op, arg1, arg2, result)`` plus a tag, ``ADDR`` for address
 computation or ``BODY`` for everything else. Operands are Python values:
@@ -12,6 +12,8 @@ computation or ``BODY`` for everything else. Operands are Python values:
 * ``str``  a scalar, loop variable or temporary (``T1``, ``T2``, ... are
   compiler temporaries, assigned exactly once; ``P1``, ... are L3 address
   temporaries, which may be assigned many times),
+* ``Indexed`` the memory cell ``BASE[X]`` (effective address ``BASE + value(X)``);
+  only as ``arg1`` of ``=[ ]`` and as the result of ``[ ]=``,
 * ``None`` an unused field, printed ``-``.
 
 Loop markers are structured: ``FOR v lo hi`` (``arg1`` = variable, ``arg2`` =
@@ -29,16 +31,34 @@ ARITHMETIC_OPS = ("+", "-", "*")
 OP_COPY = ":="
 OP_FOR = "FOR"
 OP_ENDFOR = "ENDFOR"
-# Phase 4 opcodes. Phase 5 adds "=[ ]" and "[ ]=" (quad_spec.md Section 3: eight in all).
-OPCODES = frozenset(ARITHMETIC_OPS + (OP_COPY, OP_FOR, OP_ENDFOR))
-
-Operand = int | str | None
+OP_LOAD = "=[ ]"
+OP_STORE = "[ ]="
+OPCODES = frozenset(ARITHMETIC_OPS + (OP_COPY, OP_LOAD, OP_STORE, OP_FOR, OP_ENDFOR))  # eight (Section 3)
 
 LISTING_WIDTH = 74
 """Width of the ``== Title ====...`` header line of a report block (quad_spec.md Section 9)."""
 
 _TEMP = re.compile(r"^T[0-9]+$")
 _ADDR_TEMP = re.compile(r"^P[0-9]+$")
+
+
+@dataclass(frozen=True)
+class Indexed:
+    """Indexed operand ``BASE[X]``: ``base`` is an integer, ``index`` a literal or a name."""
+
+    base: int
+    index: int | str
+
+    def __post_init__(self) -> None:
+        for v, ok in ((self.base, int), (self.index, (int, str))):
+            if isinstance(v, bool) or not isinstance(v, ok):
+                raise ValueError(f"bad indexed operand {self!r}")
+
+    def __str__(self) -> str:
+        return f"{self.base}[{self.index}]"
+
+
+Operand = int | str | Indexed | None
 
 
 @dataclass(frozen=True)
@@ -57,8 +77,12 @@ class Quad:
         if self.tag not in TAGS:
             raise ValueError(f"tag must be one of {TAGS}, got {self.tag!r}")
         for operand in (self.arg1, self.arg2, self.result):
-            if isinstance(operand, bool) or not (operand is None or isinstance(operand, (int, str))):
+            if isinstance(operand, bool) or not (operand is None or isinstance(operand, (int, str, Indexed))):
                 raise ValueError(f"bad operand {operand!r}")
+        if isinstance(self.arg2, Indexed) or (isinstance(self.arg1, Indexed) and self.op != OP_LOAD) or (
+            isinstance(self.result, Indexed) and self.op != OP_STORE
+        ):
+            raise ValueError(f"an indexed operand is only allowed in {OP_LOAD!r} (arg1) and {OP_STORE!r} (result)")
 
 
 def is_temp(operand: Operand) -> bool:
@@ -108,7 +132,44 @@ def format_listing(quads: Sequence[Quad], title: str | None = None) -> str:
 
 
 def _is_value(operand: Operand) -> bool:
-    return operand is not None
+    return operand is not None and not isinstance(operand, Indexed)
+
+
+@dataclass(frozen=True)
+class AccessDescriptor:
+    """Access window of one array access (quad_spec.md Section 6; roadmap 5.5).
+
+    Positions are 1-based listing positions. The window ``first .. last`` is
+    the contiguous run of quadruples that evaluates the subscripts and the
+    address; ``access`` is the position of the ``=[ ]`` or ``[ ]=`` quadruple
+    and always equals ``last + 1``. A window with no quadruple (for example
+    ``A[i]`` at L1, where the subscript is already a place) has
+    ``first == access`` and ``last == access - 1``.
+    """
+
+    array: str
+    subscripts: tuple  # the subscript expressions (AST nodes)
+    first: int
+    last: int
+    access: int
+    is_write: bool
+
+    @property
+    def window(self) -> range:
+        """Positions of the window (empty for an empty window)."""
+        return range(self.first, self.last + 1)
+
+
+@dataclass(frozen=True)
+class LoopEntry:
+    """One row of the loop table (roadmap 5.6); ``depth`` is 1 for an outermost loop."""
+
+    var: str
+    lo: int
+    hi: int
+    depth: int
+    for_pos: int
+    endfor_pos: int
 
 
 def well_formedness_errors(quads: Sequence[Quad]) -> list[str]:
@@ -160,6 +221,25 @@ def well_formedness_errors(quads: Sequence[Quad]) -> list[str]:
                 write(q.result, n, allow_temp=True)
             else:
                 errors.append(f"quadruple {n}: result of '{q.op}' must be a temporary")
+        elif q.op == OP_LOAD:
+            if not isinstance(q.arg1, Indexed):
+                errors.append(f"quadruple {n}: {OP_LOAD} needs an indexed operand")
+            else:
+                read(q.arg1.index, n, "index")
+            if q.arg2 is not None:
+                errors.append(f"quadruple {n}: {OP_LOAD} has no second operand")
+            if is_temp(q.result):
+                write(q.result, n, allow_temp=True)
+            else:
+                errors.append(f"quadruple {n}: result of {OP_LOAD} must be a temporary")
+        elif q.op == OP_STORE:
+            read(q.arg1, n, "source")
+            if q.arg2 is not None:
+                errors.append(f"quadruple {n}: {OP_STORE} has no second operand")
+            if not isinstance(q.result, Indexed):
+                errors.append(f"quadruple {n}: {OP_STORE} needs an indexed result")
+            else:
+                read(q.result.index, n, "index")
         elif q.op == OP_COPY:
             read(q.arg1, n, "source")
             if q.arg2 is not None:
