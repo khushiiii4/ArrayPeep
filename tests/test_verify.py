@@ -395,7 +395,7 @@ class CliCompareTests(unittest.TestCase):
         code, out, err = self.cli(self.path, "--level", "all", "--compare")
         self.assertEqual((code, err), (0, ""))
         self.assertEqual(out.count("PASS"), 5)  # four rows and the verdict line
-        self.assertTrue(out.rstrip().endswith("verdict     : PASS"))
+        self.assertTrue(out.split("== Metrics")[0].rstrip().endswith("verdict     : PASS"))
 
     def test_scalar_mismatch_fails_with_the_first_difference(self):
         real = run_file(self.path, "L1", "L2").run.scalars
@@ -403,7 +403,7 @@ class CliCompareTests(unittest.TestCase):
             code, out, err = self.cli(self.path, "--level", "all", "--compare")
         self.assertEqual((code, err), (3, ""))
         self.assertRegex(out, rf" L0 vs L2 +: scalar s differs: L0 {real['s']} vs L2 {real['s'] + 1} +FAIL")
-        self.assertTrue(out.rstrip().endswith("verdict     : FAIL"))
+        self.assertTrue(out.split("== Metrics")[0].rstrip().endswith("verdict     : FAIL"))
         self.assertRegex(out, r" L0 vs L1 +: scalars equal, memory equal, address trace equal +PASS")
 
     def test_memory_mismatch(self):
@@ -496,7 +496,7 @@ class CliCompareTests(unittest.TestCase):
                 pathlib.Path(self.path).write_text(text, encoding="utf-8")
                 code, out, err = self.cli(self.path, "--level", "all", "--compare")
                 self.assertEqual((code, err), (0, ""))
-                self.assertTrue(out.rstrip().endswith("verdict     : PASS"))
+                self.assertTrue(out.split("== Metrics")[0].rstrip().endswith("verdict     : PASS"))
 
     # -- behaviour without --compare is unchanged -------------------------------
 

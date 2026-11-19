@@ -40,14 +40,17 @@ class Counters:
 
     @property
     def multiplications(self) -> int:
+        """Executed ``*`` quadruples."""
         return self.op("*")
 
     @property
     def additions(self) -> int:
+        """Executed ``+`` quadruples."""
         return self.op("+")
 
     @property
     def subtractions(self) -> int:
+        """Executed ``-`` quadruples."""
         return self.op("-")
 
     @property
@@ -57,10 +60,12 @@ class Counters:
 
     @property
     def loads(self) -> int:
+        """Executed array-read quadruples."""
         return self.op(OP_LOAD)
 
     @property
     def stores(self) -> int:
+        """Executed array-write quadruples."""
         return self.op(OP_STORE)
 
     @property
@@ -70,14 +75,17 @@ class Counters:
 
     @property
     def body(self) -> int:
+        """Executed quadruples tagged ``BODY`` (the program's own work)."""
         return self.by_tag[TAG_BODY]
 
     @property
     def addr_multiplications(self) -> int:
+        """Executed ``*`` quadruples tagged ``ADDR``."""
         return self.by_op_tag.get(("*", TAG_ADDR), 0)
 
     @property
     def addr_add_sub(self) -> int:
+        """Executed ``+`` and ``-`` quadruples tagged ``ADDR``."""
         return self.by_op_tag.get(("+", TAG_ADDR), 0) + self.by_op_tag.get(("-", TAG_ADDR), 0)
 
     def format(self) -> str:

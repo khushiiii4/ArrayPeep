@@ -190,6 +190,7 @@ class Verification:
 
     @property
     def passed(self) -> bool:
+        """True when every comparison passed."""
         return all(c.passed for c in self.comparisons)
 
     @property

@@ -16,7 +16,7 @@ from arraypeep import __main__ as cli
 from arraypeep.driver import run_file
 from arraypeep.loop_opt import format_l3_report
 from arraypeep.optimizer import format_l2_report
-from arraypeep.report import format_quadruple_listing, format_run
+from arraypeep.report import format_metrics, format_quadruple_listing, format_run
 from arraypeep.symbol_table import format_information_vectors
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -286,7 +286,7 @@ class CompareTests(CliCase):
 
     def test_compare_block_layout_follows_the_phase_1_spec(self):
         out = self.cli(self.source(ARRAY), "--level", "all", "--compare")[1]
-        block = out[out.index("== Verification"):].rstrip("\n").split("\n")
+        block = out[out.index("== Verification"):out.index("== Metrics")].rstrip("\n").split("\n")
         self.assertEqual(len(block), 1 + 4 + 1)
         for row, level in zip(block[1:5], ("L1", "L2", "hoist", "L3")):
             self.assertRegex(row, rf"^ L0 vs {level} *: scalars equal, memory equal, address trace equal   PASS$")
@@ -301,7 +301,22 @@ class CompareTests(CliCase):
         out = self.cli(path, "--level", "all", "--show-vectors", "--show-quads", "--show-plan", "--run", "--compare")[1]
         self.assertLess(out.index("Run L3"), out.index("== Verification"))
         self.assertEqual(out.count("== Verification"), 1)
-        self.assertTrue(out.rstrip().endswith("verdict     : PASS"))
+        self.assertLess(out.index("verdict     : PASS"), out.index("== Metrics"))
+
+    def test_compare_prints_the_metrics_table_after_the_verdict(self):
+        path = self.source(ARRAY)
+        code, out, err = self.cli(path, "--level", "all", "--compare")
+        self.assertEqual(code, 0)
+        expected = format_metrics([(lvl, run_file(path, *RUNS[lvl]).run.counters) for lvl in LEVELS])
+        self.assertTrue(out.endswith(expected + "\n"))
+        self.assertLess(out.index("== Verification"), out.index("== Metrics"))
+        self.assertEqual(out.count("== Metrics"), 1)
+
+    def test_metrics_table_only_with_compare(self):
+        path = self.source(ARRAY)
+        for argv in (("--level", "all"), ("--level", "L3"), ("--level", "all", "--run")):
+            with self.subTest(argv=argv):
+                self.assertNotIn("== Metrics", self.cli(path, *argv)[1])
 
     def test_compare_only_shows_pass_text_for_passing_rows(self):
         out = self.cli(self.source(ARRAY), "--level", "all", "--compare")[1]

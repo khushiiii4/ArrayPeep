@@ -10,7 +10,7 @@ one pipeline run, and all output comes from the existing formatters
 results). Levels are run before anything is printed, so an error never
 leaves partial output. ``--compare`` (only with ``--level all``) compares
 every level with L0 (scalars, memory image, address trace; ``driver.verify``)
-and prints the verification block.
+and prints the verification block followed by the metrics table.
 
 Exit codes (docs/language_spec.md Section 9, Phase 10.5): 0 success (and every
 requested verification PASS); 1 an unreadable file, a syntax, semantic or
@@ -32,6 +32,7 @@ from .optimizer import L2BuildError, WindowError
 from .report import (
     format_optimization_report,
     format_quadruple_listing,
+    format_metrics,
     format_run,
     format_vectors,
     format_verification,
@@ -168,6 +169,7 @@ def _execute(args: argparse.Namespace) -> int:
         blocks.extend(format_run(name, results[name].run) for name in levels if name in results)
     if verification is not None:
         blocks.append(format_verification(verification))
+        blocks.append(format_metrics([(name, results[name].run.counters) for name in levels if name in results]))
     print("\n\n".join(blocks))
     return EXIT_OK if verification is None or verification.passed else EXIT_VERIFICATION_FAILED
 
